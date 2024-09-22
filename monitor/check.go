@@ -52,7 +52,7 @@ func check(context context.Context, site *site.Site) error {
 
 // CheckAll checks all the sites provided
 //
-//encore:api public method=POST path=/checkall
+//encore:api public method=POST path=/check-all
 func CheckAll(context context.Context) error {
 	// Get all the tracked sites
 	res, err := site.List(context)
