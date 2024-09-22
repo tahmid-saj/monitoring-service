@@ -9,69 +9,54 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// cron job to check all tracked sites every 5 minutes
+// Check all tracked sites every 5 minutes!..
 var _ = cron.NewJob("check-all", cron.JobConfig{
-	Title: "Check all sites",
+	Title:    "Check all sites",
 	Endpoint: CheckAll,
-	Every: 5 * cron.Minute,
+	Every:    8 * cron.Minute,
 })
 
-// Check checks a single site
+// Check checks a single site.
 //
 //encore:api public method=POST path=/check/:siteID
-func Check(context context.Context, siteID int) error {
-	// retrieve the site details from the table
-	site, err := site.Get(context, siteID)
+func Check(ctx context.Context, siteID int) error {
+	site, err := site.Get(ctx, siteID)
 	if err != nil {
 		return err
 	}
-
-	return check(context, site)
+	return check(ctx, site)
 }
 
-func check(context context.Context, site *site.Site) error {
-	// initiate a Ping to the site
-	result, err := Ping(context, site.URL)
+func check(ctx context.Context, site *site.Site) error {
+	result, err := Ping(ctx, site.URL)
 	if err != nil {
 		return err
 	}
-
-	// Publish a Pub/Sub event if the site transitions from up -> down or down -> up
-	if err := publishOnTransition(context, site, result.Up); err != nil {
-		return err
-	}
-	
-	// insert the update to the table
-	_, err = sqldb.Exec(context, `
+	_, err = sqldb.Exec(ctx, `
 		INSERT INTO checks (site_id, up, checked_at)
 		VALUES ($1, $2, NOW())
 	`, site.ID, result.Up)
-	
 	return err
 }
 
-// CheckAll checks all the sites provided
+// CheckAll checks all sites.
 //
 //encore:api public method=POST path=/checkall
-func CheckAll(context context.Context) error {
-	// Get all the tracked sites
-	res, err := site.List(context)
+func CheckAll(ctx context.Context) error {
+	// Get all the tracked sites.
+	resp, err := site.List(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Check up to 8 sites concurrently
-	g, contcontext := errgroup.WithContext(context)
+	// Check up to 8 sites concurrently.
+	g, ctx := errgroup.WithContext(ctx)
 	g.SetLimit(8)
-
-	// check all 8 sites
-	for _, site := range res.Sites {
-		// capture for closure
-		site := site
+	for _, site := range resp.Sites {
+		site := site // capture for closure
 		g.Go(func() error {
-			return check(contcontext, site)
+			return check(ctx, site)
 		})
 	}
-
 	return g.Wait()
 }
