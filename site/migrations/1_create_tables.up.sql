@@ -1,0 +1,4 @@
+CREATE TABLES sites (
+  id BIGSERIAL PRIMARY KEY,
+  url TEXT NOT NULL
+);
