@@ -35,6 +35,11 @@ func check(context context.Context, site *site.Site) error {
 	if err != nil {
 		return err
 	}
+
+	// Publish a Pub/Sub event if the site transitions from up -> down or down -> up
+	if err := publishOnTransition(context, site, result.Up); err != nil {
+		return err
+	}
 	
 	// insert the update to the table
 	_, err = sqldb.Exec(context, `
