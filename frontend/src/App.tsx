@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { FC, useEffect, useState } from "react";
-import Client, { monitor, site } from "./client";
+import Client, { Environment, Local, monitor, site } from "./client";
 import { DateTime } from "luxon";
 
-const client = new Client(window.location.origin);
+const client = new Client(import.meta.env.DEV ? Local : Environment("staging"));
 
 function App() {
   return (
