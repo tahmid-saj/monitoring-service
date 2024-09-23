@@ -26,6 +26,7 @@ func TestPing(t *testing.T) {
 
 	for _, test := range tests {
 		res, err := Ping(context, test.URL)
+
 		if err != nil {
 			t.Errorf("url %s: unexpected error occurred: %v", test.URL, err)
 		} else if res.Up != test.Up {

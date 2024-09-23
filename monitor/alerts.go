@@ -10,15 +10,16 @@ import (
 )
 
 // TransitionEvent describes a transition of a monitored site
-// from up -> down or from down -> up
+// from up -> down or down -> up
 type TransitionEvent struct {
 	// Site is the monitored site in question
 	Site *site.Site `json:"site"`
-	// Up is whether the site is now up or down
+	// Up is whether the site is up or down
 	Up bool `json:"up"`
 }
 
-// TransitionTopic is a pubsub topic with transition events for when a monitored site transitions from up -> down or down -> up
+// TransitionTopic is a pubsub topic with transition events for when a 
+// monitored site transitions from up -> down or down -> up
 var TransitionTopic = pubsub.NewTopic[*TransitionEvent]("uptime-transition", pubsub.TopicConfig{
 	DeliveryGuarantee: pubsub.AtLeastOnce,
 })
@@ -43,17 +44,17 @@ func getPreviousMeasurement(context context.Context, siteID int) (up bool, err e
 }
 
 func publishOnTransition(context context.Context, site *site.Site, isUp bool) error {
-	// if the site was up then went down
+	// check the previous measurement of the site (up or down)
 	wasUp, err := getPreviousMeasurement(context, site.ID)
 	if err != nil {
 		return err
 	}
-	
+
 	if isUp == wasUp {
 		// nothing to do since the site is still up
 		return nil
 	}
-
+	
 	// publish the event if the site went back up
 	_, err = TransitionTopic.Publish(context, &TransitionEvent{
 		Site: site,

@@ -13,25 +13,28 @@ import (
 )
 
 type NotifyParams struct {
-	// Text is the Slack message text to send
+	// Test is the Slack message text to send
 	Text string `json:"text"`
 }
 
-var _ = pubsub.NewSubscription(monitor.TransitionTopic, "slack-notification", pubsub.SubscriptionConfig[*monitor.TransitionEvent]{
-	Handler: func(context context.Context, event *monitor.TransitionEvent) error {
-		// composing the slack message
-		msg := fmt.Sprintf("*%s is down!*", event.Site.URL)
-		if event.Up {
-			msg = fmt.Sprintf("*%s is back up.*", event.Site.URL)
-		}
+var _ = pubsub.NewSubscription(monitor.TransitionTopic, "slack-notification", 
+	pubsub.SubscriptionConfig[*monitor.TransitionEvent]{
+		Handler: func(context context.Context, event *monitor.TransitionEvent) error {
+			// slack message
+			msg := fmt.Sprintf("*%s is down!*", event.Site.URL)
 
-		// send the slack notification
-		return Notify(context, &NotifyParams{Text: msg})
+			if event.Up {
+				msg = fmt.Sprintf("*%s is back up*", event.Site.URL)
+			}
+
+			// send the slack notification
+			return Notify(context, &NotifyParams{Text: msg})
+		},
 	},
-})
+)
 
-// Notify sends a Slack message to a pre-configured channel using a Slack Incoming Webhook
-//
+// Notify sends a Slack message to a pre-configured channel using a Slack incoming webhook
+// 
 //encore:api private
 func Notify(context context.Context, p *NotifyParams) error {
 	reqBody, err := json.Marshal(p)
@@ -53,8 +56,9 @@ func Notify(context context.Context, p *NotifyParams) error {
 
 	if res.StatusCode >= 400 {
 		body, _ := io.ReadAll(res.Body)
-		return fmt.Errorf("notify slack: %s: %s", res.Status, body)
+		return fmt.Errorf("error notifying slack: %s: %s", res.Status, body)
 	}
+
 	return nil
 }
 

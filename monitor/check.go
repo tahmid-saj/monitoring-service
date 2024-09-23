@@ -9,15 +9,15 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// cron job to check all tracked sites every 5 minutes
+// cron job to check all tracked sites
 var _ = cron.NewJob("check-all", cron.JobConfig{
-	Title: "Check all sites",
+	Title: "Check status of all sites",
 	Endpoint: CheckAll,
-	Every: 5 * cron.Minute,
+	Every: 1 * cron.Minute,
 })
 
 // Check checks a single site
-//
+// 
 //encore:api public method=POST path=/check/:siteID
 func Check(context context.Context, siteID int) error {
 	// retrieve the site details from the table
@@ -27,6 +27,32 @@ func Check(context context.Context, siteID int) error {
 	}
 
 	return check(context, site)
+}
+
+// CheckAll checks all the sites provided
+// 
+//encore:api public method=POST path=/check-all
+func CheckAll(context context.Context) error {
+	// Get all the tracked sites
+	res, err := site.List(context)
+	if err != nil {
+		return err
+	}
+
+	// Check up to 8 sites concurrently
+	g, context := errgroup.WithContext(context)
+	g.SetLimit(8)
+
+	// check all sites
+	for _, site := range res.Sites {
+		// capture for closure
+		site := site
+		g.Go(func() error {
+			return check(context, site)
+		})
+	}
+
+	return g.Wait()
 }
 
 func check(context context.Context, site *site.Site) error {
@@ -40,38 +66,12 @@ func check(context context.Context, site *site.Site) error {
 	if err := publishOnTransition(context, site, result.Up); err != nil {
 		return err
 	}
-	
+
 	// insert the update to the table
 	_, err = sqldb.Exec(context, `
 		INSERT INTO checks (site_id, up, checked_at)
 		VALUES ($1, $2, NOW())
 	`, site.ID, result.Up)
-	
+
 	return err
-}
-
-// CheckAll checks all the sites provided
-//
-//encore:api public method=POST path=/check-all
-func CheckAll(context context.Context) error {
-	// Get all the tracked sites
-	res, err := site.List(context)
-	if err != nil {
-		return err
-	}
-
-	// Check up to 8 sites concurrently
-	g, contcontext := errgroup.WithContext(context)
-	g.SetLimit(8)
-
-	// check all 8 sites
-	for _, site := range res.Sites {
-		// capture for closure
-		site := site
-		g.Go(func() error {
-			return check(contcontext, site)
-		})
-	}
-
-	return g.Wait()
 }

@@ -13,7 +13,7 @@ type Service struct {
 
 var siteDB = sqldb.Named("site").Stdlib()
 
-// initService initialized the site service
+// initService initializes the site service
 // It is automatically called by encore on service startup
 func initService() (*Service, error) {
 	db, err := gorm.Open(postgres.New(postgres.Config{

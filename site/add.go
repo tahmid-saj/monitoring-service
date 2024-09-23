@@ -9,11 +9,13 @@ type AddParams struct {
 	URL string `json:"url"`
 }
 
-// Add adds a new site to the list of monitored websites
-//
+// Add adds a new site to the list of monitored sites
+// 
 //encore:api public method=POST path=/site
 func (s *Service) Add(context context.Context, p *AddParams) (*Site, error) {
-	site := &Site{URL: p.URL}
+	site := &Site{
+		URL: p.URL,
+	}
 	if err := s.db.Create(site).Error; err != nil {
 		return nil, err
 	}
