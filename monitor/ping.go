@@ -11,6 +11,17 @@ type PingResponse struct {
 	Up bool `json:"up"`
 }
 
+type PingMetadata struct {
+	SiteID int `json:"site_id"`
+	URL string 	`json:"url"`
+	CheckedAt string `json:"checked_at"`
+	Up bool `json:"up"`
+}
+
+type PingResponses struct {
+	Responses []PingMetadata `json:"responses"`
+}
+
 // Ping pings a specific site and determines whether it's up or down
 // 
 //encore:api public path=/ping/*url
