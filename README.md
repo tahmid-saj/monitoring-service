@@ -13,6 +13,28 @@ Pub/Sub monitoring service for subscribing to sites and publishing events when t
 
 The directory structure is as follows:
 
+## Directory Structure
+
+- **monitor/**
+  - Go-based service for monitoring websites.
+
+- **site/**
+  - Site-related functionalities and components for monitoring.
+
+- **slack/**
+  - Integration with Slack for notifications.
+
+- **encore.app**
+  - Encore configuration for cloud-native service deployments.
+
+- **go.mod**: Go module dependencies.
+
+- **go.sum**: Checksum file for Go module versions.
+
+- **README.md**: Project documentation.
+
+- **.gitignore**: Specifies files to be ignored by Git.
+
 <br/>
 <br/>
 
