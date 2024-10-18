@@ -13,8 +13,6 @@ Pub/Sub monitoring service for subscribing to sites and publishing events when t
 
 The directory structure is as follows:
 
-## Directory Structure
-
 - **monitor/**
   - Go-based service for monitoring websites.
 
